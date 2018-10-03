@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Nordril.Graphs</name>
+    </assembly>
+    <members>
+        <member name="T:Nordril.Graphs.CycleDetectingSorter`2">
+            <summary>
+            A topological sorters which can try to topologically sort a directred graph and return the encountered cycles.
+            </summary>
+            <typeparam name="TVertex">The type of the vertices in the graph.</typeparam>
+            <typeparam name="TEdge">The type of the edges in the graph.</typeparam>
+        </member>
+        <member name="M:Nordril.Graphs.CycleDetectingSorter`2.#ctor(SD.Tools.Algorithmia.Graphs.GraphBase{`0,`1},System.Boolean)">
+            <summary>
+            Creates a new instance.
+            </summary>
+            <param name="graphToCrawl">The graph to crawl.</param>
+            <param name="directionMeansOrder">If set to true, a directed edge from A to B is interpreted as the order in which A and B should be done, i.e. first A then B. When false is passed (default) the edge from A to B is interpreted as A is depending on B and therefore B should be done before A.</param>
+        </member>
+        <member name="M:Nordril.Graphs.CycleDetectingSorter`2.CycleDetected(`0,System.Collections.Generic.HashSet{`1})">
+            <summary>
+            Adds a cyle to the internal cycle-list when a cycle has been encountered.
+            </summary>
+            <param name="relatedVertex">The vertex participating in the cylce.</param>
+            <param name="edges">The edges participating in the cylce.</param>
+        </member>
+        <member name="M:Nordril.Graphs.CycleDetectingSorter`2.SortWithCycleDetection(System.Collections.Generic.List{`0}@)">
+            <summary>
+            Runs the sorter and returns those vertices with their relevant outgoing edges which participate in cycles, if there are any.
+            </summary>
+            <param name="sortedVertices">The list of sortted vertices, if there are no cycles. This sorting will respect edge order, meaning that the following will hold, if no cycles exist:
+            <code>
+                [forall i,j]i &lt; j =&gt; there is a path sortedVertices[i]~&gt;sortedVertices[j] and there is no path sortedVertices[j]\&gt;sortedVertices[j].
+            </code>
+            If there are cycles, this parameter will be set to <c>default</c>.
+            </param>
+            <returns>The vertices which participate in cycles, with their relevant outgoing edges.</returns>
+        </member>
+        <member name="T:Nordril.Graphs.DependencyGraph">
+            <summary>
+            A dependency graph for <see cref="T:Castle.Windsor.IWindsorContainer"/> which can be used to visualize dependencies and detect dependency cycles.
+            </summary>
+        </member>
+        <member name="M:Nordril.Graphs.DependencyGraph.#ctor(Castle.Windsor.IWindsorContainer)">
+            <summary>
+            Creates a new instance.
+            </summary>
+            <param name="container">The IOC container for which to create the dependency graph.</param>
+        </member>
+        <member name="M:Nordril.Graphs.DependencyGraph.WriteGraph``1(System.Boolean)">
+            <summary>
+            Writes the container's dependency graph to a <see cref="T:System.IO.TextWriter"/>.
+            </summary>
+            <param name="forceRecompute">Whether to force the recomputation of the dependency graph. If false, the cached graph will be used, if it has been previously computed.</param>
+            <typeparam name="T">The concrete type of <see cref="T:System.IO.TextWriter"/> to use.</typeparam>
+        </member>
+        <member name="M:Nordril.Graphs.DependencyGraph.CreateGraph(System.Boolean)">
+            <summary>
+            Creates and returns the dependency graph. The result will be cached.
+            </summary>
+            <param name="forceRecompute">Whether to force the recomputation of the dependency graph. If false, the cached graph will be used, if it has been previously computed.</param>
+        </member>
+        <member name="M:Nordril.Graphs.DependencyGraph.HasCycles(System.Collections.Generic.IDictionary{System.Type,System.Collections.Generic.ISet{System.Type}}@)">
+            <summary>
+            Returns true iff the graph has cycles. The dependency from <see cref="T:Castle.Windsor.IWindsorContainer"/> to <see cref="T:Castle.Windsor.IWindsorContainer"/> will be excluded, as that is the one permissible cycle according to Castle Windsor.
+            </summary>
+            <param name="cycles">The vertices which form part of cycles, with their outgoing edges. The outgoing edges indicates dependencies of the vertex. If there are no cycles, <c>default</c> will be returned.</param>
+        </member>
+        <member name="M:Nordril.Graphs.DependencyGraph.HasOnlyWindsorCycle(System.Collections.Generic.IDictionary{System.Type,System.Collections.Generic.ISet{System.Type}})">
+            <summary>
+            Returns true iff <paramref name="cycles"/> consists of only one cycle which goes from <see cref="T:Castle.Windsor.IWindsorContainer"/> to <see cref="T:Castle.Windsor.IWindsorContainer"/> and nothing else.
+            </summary>
+            <param name="cycles">The set of cycles to check.</param>
+        </member>
+        <member name="T:Nordril.Graphs.DirectedGraphExtensions">
+            <summary>
+            Extension methods for <see cref="T:SD.Tools.Algorithmia.Graphs.DirectedGraph`2"/>
+            </summary>
+        </member>
+        <member name="M:Nordril.Graphs.DirectedGraphExtensions.AddToPrecendeGraph``1(SD.Tools.Algorithmia.Graphs.DirectedGraph{``0,SD.Tools.Algorithmia.Graphs.DirectedEdge{``0}},``0,System.Collections.Generic.ISet{``0},System.Collections.Generic.ISet{``0})">
+            <summary>
+            Adds a vertex that has precedence-wishes. Predences are represented as two sets of edges <paramref name="antecedents"/>, which specify which other vertices should come before this vertex, and <paramref name="successors"/>, which specifies which vertices should come after this vertex. If any of the vertices in <paramref name="antecedents"/> or <paramref name="successors"/> do not exist in the graph, they are added to the graph as well.
+            </summary>
+            <typeparam name="TVertex">The type of the graph's vertices.</typeparam>
+            <typeparam name="TEdge">The type of the graph's edges.</typeparam>
+            <param name="g">The graph to which to add the vertices and edges.</param>
+            <param name="vertex">The vertex to add.</param>
+            <param name="antecedents">The antecedents of <paramref name="vertex"/>.</param>
+            <param name="successors">The successors of <paramref name="vertex"/>.</param>
+        </member>
+    </members>
+</doc>
