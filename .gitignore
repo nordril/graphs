@@ -1,0 +1,6 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Nordril.Graphs/obj
+/.vs/Nordril.Graphs/v15/Server/sqlite3
