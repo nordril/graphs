@@ -48,7 +48,7 @@ namespace Nordril.Graphs
         /// <typeparam name="TVertex">The type of the vertices.</typeparam>
         /// <param name="g">The graph.</param>
         /// <param name="contains">The contains-relation between vertices. <c>contains(x,y)</c> should be true iff <c>x</c> contains <c>y</c> as a smaller element.</param>
-        public static Maybe<TGraph> TreeifyDag<TGraph, TVertex>(
+        public static Maybe<DirectedGraph<IFuncSet<TVertex>, DirectedEdge<IFuncSet<TVertex>>>> TreeifyDag<TGraph, TVertex>(
             this TGraph g,
             Func<TVertex, TVertex, bool> contains)
             where TGraph : DirectedGraph<TVertex, DirectedEdge<TVertex>>
@@ -56,9 +56,9 @@ namespace Nordril.Graphs
         {
             var ret = g
                 .MergeAncestors(true)
-                .Map(g2 => g2.MergeMultiEdges<TGraph, IFuncSet<TVertex>, DirectedEdge<IFuncSet<TVertex>>>(es => makeEdge(es.First().StartVertex, es.First().EndVertex))).ToMaybe()
-                .Bind(g2 => g2.RemoveIndirectParentRelationships<TGraph, TVertex, DirectedEdge<TVertex>>())
-                .Map(g2 => g2.RemoveLoops<TGraph, TVertex, DirectedEdge<TVertex>>()).ToMaybe()
+                .Map(g2 => g2.MergeMultiEdges<DirectedGraph<IFuncSet<TVertex>, DirectedEdge<IFuncSet<TVertex>>>, IFuncSet<TVertex>, DirectedEdge<IFuncSet<TVertex>>>(es => es.First())).ToMaybe()
+                .Bind(g2 => g2.RemoveIndirectParentRelationships<DirectedGraph<IFuncSet<TVertex>, DirectedEdge<IFuncSet<TVertex>>>, IFuncSet<TVertex>, DirectedEdge<IFuncSet<TVertex>>>())
+                .Map(g2 => g2.RemoveLoops<DirectedGraph<IFuncSet<TVertex>, DirectedEdge<IFuncSet<TVertex>>>, IFuncSet<TVertex>, DirectedEdge<IFuncSet<TVertex>>>()).ToMaybe()
                 .Bind(g2 => Maybe.JustIf(!g2.HasCycles(out var _), () => g2)).ToMaybe();
 
             return ret;
