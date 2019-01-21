@@ -5,3 +5,6 @@
 /Nordril.Graphs/obj
 /.vs/Nordril.Graphs/v15/Server/sqlite3
 /Nordril.Graphs/bin
+/Nordril.Graphs.Tests/bin
+/Nordril.Graphs.Tests/obj
+/.vs/Nordril.Graphs/DesignTimeBuild

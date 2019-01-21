@@ -73,21 +73,176 @@
             </summary>
             <param name="cycles">The set of cycles to check.</param>
         </member>
-        <member name="T:Nordril.Graphs.DirectedGraphExtensions">
+        <member name="T:Nordril.Graphs.GraphEqualityComparer`3">
             <summary>
-            Extension methods for <see cref="T:SD.Tools.Algorithmia.Graphs.DirectedGraph`2"/>
+            An <see cref="T:System.Collections.Generic.IEqualityComparer`1"/> which structurally compares graphs.
+            Note: <see cref="M:System.Collections.Generic.IEqualityComparer`1.GetHashCode(`0)"/> also hashes all elements of the graph and this might be an expensive operation if the graph is large.
+            </summary>
+            <typeparam name="TGraph">The type of the graph.</typeparam>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <typeparam name="TEdge">The type of the edges.</typeparam>
+        </member>
+        <member name="M:Nordril.Graphs.GraphEqualityComparer`3.#ctor(System.Collections.Generic.IComparer{`1},System.Collections.Generic.IComparer{`2})">
+            <summary>
+            Creates a new instance.
+            </summary>
+            <param name="vertexComparer">The comparer for vertices. See <see cref="M:Nordril.Graphs.GraphEqualityComparer.VertexCompare``1"/> for a default comparer.</param>
+            <param name="edgeComparer">The comparer for edges. See <see cref="M:Nordril.Graphs.GraphEqualityComparer.EdgeCompare``1"/> for a default comparer.</param>
+        </member>
+        <member name="M:Nordril.Graphs.GraphEqualityComparer`3.Equals(`0,`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:Nordril.Graphs.GraphEqualityComparer`3.GetHashCode(`0)">
+            <summary>
+            Structurally hashes the vertices and edges of a graph.
+            </summary>
+            <param name="obj">The graph to hash.</param>
+        </member>
+        <member name="T:Nordril.Graphs.GraphEqualityComparer">
+            <summary>
+            Extension methods for <see cref="T:Nordril.Graphs.GraphEqualityComparer`3"/>.
             </summary>
         </member>
-        <member name="M:Nordril.Graphs.DirectedGraphExtensions.AddToPrecendeGraph``1(SD.Tools.Algorithmia.Graphs.DirectedGraph{``0,SD.Tools.Algorithmia.Graphs.DirectedEdge{``0}},``0,System.Collections.Generic.ISet{``0},System.Collections.Generic.ISet{``0})">
+        <member name="M:Nordril.Graphs.GraphEqualityComparer.VertexCompare``1">
             <summary>
-            Adds a vertex that has precedence-wishes. Predences are represented as two sets of edges <paramref name="antecedents"/>, which specify which other vertices should come before this vertex, and <paramref name="successors"/>, which specifies which vertices should come after this vertex. If any of the vertices in <paramref name="antecedents"/> or <paramref name="successors"/> do not exist in the graph, they are added to the graph as well.
+            Returns an <see cref="T:System.Collections.Generic.IComparer`1"/> which uses the <see cref="T:System.IComparable`1"/>-insance of the vertex <typeparamref name="T"/>.
+            </summary>
+            <typeparam name="T">The type of the vertices.</typeparam>
+        </member>
+        <member name="M:Nordril.Graphs.GraphEqualityComparer.EdgeCompare``1">
+            <summary>
+            Returns an <see cref="T:System.Collections.Generic.IComparer`1"/> which uses the <see cref="T:System.IComparable`1"/>-instance of the vertex <typeparamref name="T"/> and which compares the start- and edn-vertex of the edges.
+            </summary>
+            <typeparam name="T">The type of the vertices.</typeparam>
+        </member>
+        <member name="M:Nordril.Graphs.GraphEqualityComparer.EdgeCompare``1(System.Collections.Generic.IComparer{``0})">
+            <summary>
+            Returns an <see cref="T:System.Collections.Generic.IComparer`1"/> which uses an <see cref="T:System.Collections.Generic.IComparer`1"/> <paramref name="comparer"/> on the vertex <typeparamref name="T"/> and which compares the start- and edn-vertex of the edges.
+            </summary>
+            <typeparam name="T">The type of the vertices.</typeparam>
+        </member>
+        <member name="T:Nordril.Graphs.GraphExtensions">
+            <summary>
+            Extension methods for <see cref="T:SD.Tools.Algorithmia.Graphs.GraphBase`2"/>.
+            </summary>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.TreeifyDag``2(``0,System.Func{System.Collections.Generic.ISet{``1},``1},System.Func{``1,``1,SD.Tools.Algorithmia.Graphs.DirectedEdge{``1}},System.Func{``1,``1,System.Boolean})">
+            <summary>
+            Turns a DAG into a tree, if possible. All ancestory of each node are merged, all indirect ancestor-relationships as well as multi-edges between nodes and loops are removed. The input graph will be mutated.
+            </summary>
+            <typeparam name="TGraph">The type of the graph.</typeparam>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <param name="g">The graph.</param>
+            <param name="vertexMerger">A function to merge the ancestors of a node.</param>
+            <param name="makeEdge">A function which creates an edge between a node and one which was part of the merged ancestors Either the first or second argument of this function will be the merged ancestor, depending on whether the edge was outgoing or incoming.</param>
+            <param name="contains">The contains-relation between vertices. <c>contains(x,y)</c> should be true iff <c>x</c> contains <c>y</c> as a smaller element.</param>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.HasCycles``2(SD.Tools.Algorithmia.Graphs.DirectedGraph{``0,``1},System.Collections.Generic.IDictionary{``0,System.Collections.Generic.ISet{``0}}@)">
+            <summary>
+            Returns true iff the graph has cycles.
+            </summary>
+            <param name="g">The graph.</param>
+            <param name="cycles">The vertices which form part of cycles, with their outgoing edges. If there are no cycles, <c>default</c> will be returned.</param>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.RemoveLoops``3(``0)">
+            <summary>
+            Removes all loops from a graph. The input graph will be mutated.
+            </summary>
+            <typeparam name="TGraph">The type of the graph.</typeparam>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <typeparam name="TEdge">The type of the edges.</typeparam>
+            <param name="g">The graph.</param>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.MergeAncestors``1(SD.Tools.Algorithmia.Graphs.DirectedGraph{``0,SD.Tools.Algorithmia.Graphs.DirectedEdge{``0}},System.Boolean)">
+            <summary>
+            Merges the ancestors of all nodes (recursively) if any node has multiple ancestors (i.e. multiple incoming edges). The input graph will not be mutated.
+            If any nodes which are to be merged have edges between them, the merging will create loops, unless <paramref name="eliminateLoopsFromMergedNodes"/> is true.
+            </summary>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <param name="g">The graph.</param>
+            <param name="eliminateLoopsFromMergedNodes">If true, any loop that would be created for a merged node due to the nodes to be merged having edges among them is removed.</param>
+            <returns>The mutated input graph if there were no cycles in the original graph, and <see cref="M:Nordril.Functional.Data.Maybe.Nothing``1"/> otherwise.</returns>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.MergeAncestors``2(``0,System.Func{System.Collections.Generic.ISet{``1},``1},System.Func{``1,``1,SD.Tools.Algorithmia.Graphs.DirectedEdge{``1}},System.Func{``1,``1,System.Boolean},System.Boolean)">
+            <summary>
+            Merges the ancestors of all nodes (recursively) if any node has multiple ancestors (i.e. multiple incoming edges). The input graph will be mutated, but if the graph has cycles, the operation will fail before any mutation is done.
+            If any nodes which are to be merged have edges between them, the merging will create loops, unless <paramref name="eliminateLoopsFromMergedNodes"/> is true.
+            </summary>
+            <typeparam name="TGraph">The type of the graph.</typeparam>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <param name="g">The graph.</param>
+            <param name="vertexMerger">A function to merge the ancestors of a node.</param>
+            <param name="makeEdge">A function which creates an edge between a node and one which was part of the merged ancestors Either the first or second argument of this function will be the merged ancestor, depending on whether the edge was outgoing or incoming.</param>
+            <param name="contains">The contains-relation between vertices. <c>contains(x,y)</c> should be true iff <c>x</c> contains <c>y</c> as a smaller element.</param>
+            <param name="eliminateLoopsFromMergedNodes">If true, any loop that would be created for a merged node due to the nodes to be merged having edges among them is removed.</param>
+            <returns>The mutated input graph if there were no cycles in the original graph, and <see cref="M:Nordril.Functional.Data.Maybe.Nothing``1"/> otherwise.</returns>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.MergeNodes``2(``0,System.Collections.Generic.ISet{``1},``1,System.Func{``1,``1,SD.Tools.Algorithmia.Graphs.DirectedEdge{``1}},System.Func{``1,``1,System.Boolean})">
+            <summary>
+            Merges a set of nodes in a graph, including the edges which touch any of those nodes. The input graph is mutated.
+            </summary>
+            <typeparam name="TGraph">The type of the graph.</typeparam>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <param name="g">The graph.</param>
+            <param name="nodesToMerge">The set of nodes to merge.</param>
+            <param name="mergedNode">The merged node to insert in stead of the nodes in <paramref name="nodesToMerge"/>.</param>
+            <param name="makeEdge">A function which creates an edge between a node and one which was part of <paramref name="nodesToMerge"/>. Either the first or second argument of this function will be <paramref name="mergedNode"/>, depending on whether the edge was outgoing or incoming.</param>
+            <param name="contains">The contains-relation between vertices. <c>contains(x,y)</c> should be true iff <c>x</c> contains <c>y</c> as a smaller element.</param>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.RemoveIndirectParentRelationships``3(``0)">
+            <summary>
+            In a directed, acyclic graph, removes all edges between non-direct ancestors. A node A is a non-direct ancestor of a node B if there is a path from A to B with more than one edge. The input graph is mutated.
+            If the graph contains cycles, <see cref="M:Nordril.Functional.Data.Maybe.Nothing``1"/> is returned.
+            </summary>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <typeparam name="TGraph">The type of the graph.</typeparam>
+            <typeparam name="TEdge">The type of the edges.</typeparam>
+            <param name="g">The graph.</param>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.MergeMultiEdges``3(``0,System.Func{System.Collections.Generic.ISet{``2},``2})">
+            <summary>
+            Merges the set of all edges going between any par of nodes n, m into a single edge, using the function <paramref name="merger"/>.
+            The original grpah <paramref name="g"/> is mutated.
+            </summary>
+            <typeparam name="TGraph">The type of the graph.</typeparam>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <typeparam name="TEdge">The type of the edges.</typeparam>
+            <param name="g">The graph.</param>
+            <param name="merger">The edge-merge function, called at most once for all pairs of nodes (never when there's no edge between two nodes).</param>
+            <returns>The mutated version of the input graph.</returns>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.GetShortestPaths``2(SD.Tools.Algorithmia.Graphs.DirectedGraph{``0,``1},System.Func{``1,System.Double})">
+            <summary>
+            Computes the shortest paths between all pairs of nodes in a graph using the Floyd-Warshall algorithm.
+            The cost-function <paramref name="costFunction"/> may be positive or negative, but the graph <paramref name="g"/> may contain no negative-cost cycles. In such a case, the algorithm will fail.
+            </summary>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <typeparam name="TEdge">The type of the edges.</typeparam>
+            <param name="g">The graph.</param>
+            <param name="costFunction">The cost-function to apply to each edge. Costs may be negative, but if a negative-cost cycle exists, <see cref="M:Nordril.Functional.Data.Maybe.Nothing``1"/> is returned.</param>
+            <returns>A list of edge-pairs, with the cost of the shortest path between them. If there is no path between two nodes, the corresponding cost will be <see cref="M:Nordril.Functional.Data.Maybe.Nothing``1"/>.</returns>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.GetLongestPaths``2(SD.Tools.Algorithmia.Graphs.DirectedGraph{``0,``1},System.Func{``1,System.Double})">
+            <summary>
+            Computes the longest paths between all pairs of nodes in a graph using the Floyd-Warshall algorithm.
+            The cost-function <paramref name="costFunction"/> may be positive or negative, but the graph <paramref name="g"/> may contain no positive-cost cycles. In such a case, the algorithm will fail.
+            </summary>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <typeparam name="TEdge">The type of the edges.</typeparam>
+            <param name="g">The graph.</param>
+            <param name="costFunction">The cost-function to apply to each edge. Costs may be positive, but if a positive-cost cycle exists, <see cref="M:Nordril.Functional.Data.Maybe.Nothing``1"/> is returned.</param>
+            <returns>A list of edge-pairs, with the cost of the longest path between them. If there is no path between two nodes, the corresponding cost will be <see cref="M:Nordril.Functional.Data.Maybe.Nothing``1"/>.</returns>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.AddToPrecendeGraph``1(SD.Tools.Algorithmia.Graphs.DirectedGraph{``0,SD.Tools.Algorithmia.Graphs.DirectedEdge{``0}},``0,System.Collections.Generic.ISet{``0},System.Collections.Generic.ISet{``0},System.Boolean)">
+            <summary>
+            Adds a vertex that has precedence-wishes. Predences are represented as two sets of edges <paramref name="antecedents"/>, which specify which other vertices should come before this vertex, and <paramref name="successors"/>, which specifies which vertices should come after this vertex. If any of the vertices in <paramref name="antecedents"/> or <paramref name="successors"/> do not exist in the graph, <paramref name="addMissingVertices"/> determines what is to be done.
             </summary>
             <typeparam name="TVertex">The type of the graph's vertices.</typeparam>
-            <typeparam name="TEdge">The type of the graph's edges.</typeparam>
             <param name="g">The graph to which to add the vertices and edges.</param>
             <param name="vertex">The vertex to add.</param>
             <param name="antecedents">The antecedents of <paramref name="vertex"/>.</param>
             <param name="successors">The successors of <paramref name="vertex"/>.</param>
+            <param name="addMissingVertices">If true, members of <paramref name="antecedents"/> and <paramref name="successors"/> which are not vertices in <paramref name="g"/> will be added to it, if false, they will be ignored.</param>
         </member>
     </members>
 </doc>
