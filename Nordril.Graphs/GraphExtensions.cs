@@ -47,10 +47,8 @@ namespace Nordril.Graphs
         /// <typeparam name="TGraph">The type of the graph.</typeparam>
         /// <typeparam name="TVertex">The type of the vertices.</typeparam>
         /// <param name="g">The graph.</param>
-        /// <param name="contains">The contains-relation between vertices. <c>contains(x,y)</c> should be true iff <c>x</c> contains <c>y</c> as a smaller element.</param>
         public static Maybe<DirectedGraph<IFuncSet<TVertex>, DirectedEdge<IFuncSet<TVertex>>>> TreeifyDag<TGraph, TVertex>(
-            this TGraph g,
-            Func<TVertex, TVertex, bool> contains)
+            this TGraph g)
             where TGraph : DirectedGraph<TVertex, DirectedEdge<TVertex>>
             where TVertex : IEquatable<TVertex>
         {
