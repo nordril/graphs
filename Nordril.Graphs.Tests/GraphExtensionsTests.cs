@@ -617,6 +617,76 @@ namespace Nordril.Graphs.Tests
             yield return new object[] { g };
         }
 
+        public static IEnumerable<object[]> DagToTreeData()
+        {
+            IFuncSet<char> mkfs(IEnumerable<char> cs) => new FuncSet<char>(cs);
+
+            var g = new CharSetGraph();
+            yield return new object[] { g, Maybe.Nothing<Tree<IFuncSet<char>>>() };
+
+            g = new CharSetGraph();
+            g.Add(mkfs("a"));
+            yield return new object[] { g, Maybe.Just(Tree.MakeLeaf(mkfs("a"))) };
+
+            g = new CharSetGraph();
+            g.Add(mkfs("a"));
+            g.Add(mkfs("b"));
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("a"), mkfs("b")));
+            yield return new object[] { g, Maybe.Just(Tree.MakeInner(mkfs("a"), new[] { Tree.MakeLeaf(mkfs("b")) })) };
+
+            g = new CharSetGraph();
+            g.Add(mkfs("a"));
+            g.Add(mkfs("b"));
+            g.Add(mkfs("c"));
+            g.Add(mkfs("d"));
+            g.Add(mkfs("e"));
+            g.Add(mkfs("f"));
+            g.Add(mkfs("g"));
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("a"), mkfs("b")));
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("a"), mkfs("e")));
+
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("b"), mkfs("c")));
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("b"), mkfs("d")));
+
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("e"), mkfs("f")));
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("e"), mkfs("g")));
+            yield return new object[] { g, Maybe.Just(
+                Tree.MakeInner(mkfs("a"), new []{
+                        Tree.MakeInner(mkfs("b"), new [] {
+                            Tree.MakeLeaf(mkfs("c")), Tree.MakeLeaf(mkfs("d"))}),
+                        Tree.MakeInner(mkfs("e"), new [] {
+                            Tree.MakeLeaf(mkfs("f")), Tree.MakeLeaf(mkfs("g"))})}))};
+
+            g = new CharSetGraph();
+            g.Add(mkfs("a"));
+            g.Add(mkfs("b"));
+            g.Add(mkfs("c"));
+            g.Add(mkfs("d"));
+            g.Add(mkfs("e"));
+            g.Add(mkfs("f"));
+            g.Add(mkfs("g"));
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("a"), mkfs("b")));
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("a"), mkfs("e")));
+
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("b"), mkfs("c")));
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("b"), mkfs("d")));
+
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("e"), mkfs("f")));
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("e"), mkfs("g")));
+
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("f"), mkfs("g")));
+            yield return new object[] { g, Maybe.Nothing<Tree<IFuncSet<char>>>() };
+
+            g = new CharSetGraph();
+            g.Add(mkfs("a"));
+            g.Add(mkfs("b"));
+            g.Add(mkfs("c"));
+            g.Add(mkfs("d"));
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("a"), mkfs("b")));
+            g.Add(new DirectedEdge<IFuncSet<char>>(mkfs("c"), mkfs("d")));
+            yield return new object[] { g, Maybe.Nothing<Tree<IFuncSet<char>>>() };
+        }
+
         [Theory]
         [MemberData(nameof(ShortestPathData))]
         public static void ShortestPathTest(CharGraph g, IDictionary<(char, char), Maybe<double>> expected)
@@ -693,6 +763,17 @@ namespace Nordril.Graphs.Tests
             var copy = g.MergeAncestors(true);
 
             Assert.True(copy.IsNothing);
+        }
+
+        [Theory]
+        [MemberData(nameof(DagToTreeData))]
+        public static void DagToTreeTest(CharSetGraph g, Maybe<Tree<IFuncSet<char>>> expected)
+        {
+            var actual = g.DagToTree();
+
+            Assert.Equal(actual.HasValue, expected.HasValue);
+            if (expected.HasValue)
+                Assert.Equal(actual.Value(), expected.Value());
         }
     }
 }

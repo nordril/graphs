@@ -137,6 +137,21 @@
             <param name="makeEdge">A function which creates an edge between a node and one which was part of the merged ancestors Either the first or second argument of this function will be the merged ancestor, depending on whether the edge was outgoing or incoming.</param>
             <param name="contains">The contains-relation between vertices. <c>contains(x,y)</c> should be true iff <c>x</c> contains <c>y</c> as a smaller element.</param>
         </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.TreeifyDag``2(``0)">
+            <summary>
+            Turns a DAG into a tree, if possible. All ancestory of each node are merged, all indirect ancestor-relationships as well as multi-edges between nodes and loops are removed. The input graph will be mutated.
+            </summary>
+            <typeparam name="TGraph">The type of the graph.</typeparam>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <param name="g">The graph.</param>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.DagToTree``1(SD.Tools.Algorithmia.Graphs.DirectedGraph{``0,SD.Tools.Algorithmia.Graphs.DirectedEdge{``0}})">
+            <summary>
+            Turns a DAG which is already a tree into a <see cref="T:Nordril.Functional.Data.Tree`1"/>. If the DAG is weakly or strongly cyclic, or disconnected, <see cref="M:Nordril.Functional.Data.Maybe.Nothing``1"/> is returned.
+            </summary>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <param name="g">The graph.</param>
+        </member>
         <member name="M:Nordril.Graphs.GraphExtensions.HasCycles``2(SD.Tools.Algorithmia.Graphs.DirectedGraph{``0,``1},System.Collections.Generic.IDictionary{``0,System.Collections.Generic.ISet{``0}}@)">
             <summary>
             Returns true iff the graph has cycles.

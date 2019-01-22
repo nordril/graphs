@@ -63,6 +63,38 @@ namespace Nordril.Graphs
         }
 
         /// <summary>
+        /// Turns a DAG which is already a tree into a <see cref="Tree{T}"/>. If the DAG is weakly or strongly cyclic, or disconnected, <see cref="Maybe.Nothing{T}"/> is returned.
+        /// </summary>
+        /// <typeparam name="TVertex">The type of the vertices.</typeparam>
+        /// <param name="g">The graph.</param>
+        public static Maybe<Tree<TVertex>> DagToTree<TVertex>(this DirectedGraph<TVertex, DirectedEdge<TVertex>> g)
+            where TVertex : IEquatable<TVertex>
+        {
+            var visitedVertices = new HashSet<TVertex>();
+            var roots = g.Vertices.Where(v => g.GetEdgesToEndVertex(v).Where(e => e.EndVertex.Equals(v)).Empty()).ToList();
+
+            var sorter = new CycleDetectingSorter<TVertex, DirectedEdge<TVertex>>(g, true);
+
+            //Definition of a tree: |E| = |V|-1 && the graph is connected.
+            if (roots.Count != 1 || g.EdgeCount != (g.VertexCount -1) || !g.IsConnected())
+                return Maybe.Nothing<Tree<TVertex>>();
+
+            Tree<TVertex> go(TVertex cur)
+            {
+                visitedVertices.Add(cur);
+
+                var children = g.GetEdgesFromStartVertex(cur);
+
+                if (children.Count == 0)
+                    return Tree.MakeLeaf(cur);
+                else
+                    return Tree.MakeInner(cur, children.Where(c => !visitedVertices.Contains(c.EndVertex)).Select(c => go(c.EndVertex)));
+            };
+
+            return Maybe.Just(go(roots[0]));
+        }
+
+        /// <summary>
         /// Returns true iff the graph has cycles.
         /// </summary>
         /// <param name="g">The graph.</param>
