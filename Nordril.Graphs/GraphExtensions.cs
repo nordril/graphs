@@ -370,13 +370,13 @@ namespace Nordril.Graphs
 
                         var indirectPath = monoid.Op(ik, kj);
 
-                        //Negative cycle-check: if ik_kj is <=0, we have a negative cycle and we quit.
-                        if (indirectPath.HasValue && indirectPath.Value() < 0D)
-                            return Maybe.Nothing<Dictionary<(TVertex, TVertex), Maybe<double>>>();
-
                         if (order.Ge(ij, indirectPath))
                             dist[(i, j)] = indirectPath;
                     }
+
+            //Negative cycle-check: if, for any i, dist[(i,i)] < 0, we have a negative cycle and we quit.
+            if (g.Vertices.Any(v => dist[(v, v)].ValueOr(0D) < 0D))
+                return Maybe.Nothing<Dictionary<(TVertex, TVertex), Maybe<double>>>();
 
             return Maybe.Just(dist);
         }
