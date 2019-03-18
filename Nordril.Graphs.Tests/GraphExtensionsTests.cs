@@ -1,6 +1,7 @@
 ﻿using Nordril.Functional;
 using Nordril.Functional.Data;
 using SD.Tools.Algorithmia.Graphs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -687,6 +688,94 @@ namespace Nordril.Graphs.Tests
             yield return new object[] { g, Maybe.Nothing<Tree<IFuncSet<char>>>() };
         }
 
+        public static IEnumerable<object[]> StronglyConnectedComponentsData()
+        {
+            DirectedGraph<char, DirectedEdge<char>> mkGraph(IEnumerable<char> v, IEnumerable<(char, char)> e)
+            {
+                var ret = new DirectedGraph<char, DirectedEdge<char>>();
+
+                v.ForEach(ret.Add);
+                e.Select(d => new DirectedEdge<char>(d.Item1, d.Item2)).ForEach(ret.Add);
+                return ret;
+            }
+
+            var comparer = new GraphEqualityComparer<DirectedGraph<char, DirectedEdge<char>>, char, DirectedEdge<char>>(
+                GraphEqualityComparer.VertexCompare<char>(),
+                GraphEqualityComparer.EdgeCompare<char>());
+
+            var g = mkGraph(new char[0], new (char, char)[0]);
+            var set = new HashSet<DirectedGraph<char, DirectedEdge<char>>>(comparer);
+            yield return new object[] { g, set };
+
+            g = mkGraph("a", new (char, char)[] { });
+            set = new HashSet<DirectedGraph<char, DirectedEdge<char>>>(comparer)
+            {
+                mkGraph("a", new (char, char)[] { })
+            };
+
+            yield return new object[] { g, set };
+
+            g = mkGraph("abc", new (char, char)[] { });
+            set = new HashSet<DirectedGraph<char, DirectedEdge<char>>>(comparer)
+            {
+                mkGraph("a", new (char, char)[] { }),
+                mkGraph("b", new (char, char)[] { }),
+                mkGraph("c", new (char, char)[] { })
+            };
+
+            yield return new object[] { g, set };
+
+            g = mkGraph("a", new (char, char)[] { ('a', 'a') });
+            set = new HashSet<DirectedGraph<char, DirectedEdge<char>>>(comparer)
+            {
+                mkGraph("a", new (char, char)[] { ('a','a') }),
+            };
+
+            yield return new object[] { g, set };
+
+            g = mkGraph("abc", new (char, char)[] { ('a', 'a'), ('a', 'b') });
+            set = new HashSet<DirectedGraph<char, DirectedEdge<char>>>(comparer)
+            {
+                mkGraph("a", new (char, char)[] { ('a','a') }),
+                mkGraph("b", new (char, char)[] { }),
+                mkGraph("c", new (char, char)[] { }),
+            };
+
+            yield return new object[] { g, set };
+
+            g = mkGraph("abcd", new (char, char)[] { ('b', 'c'), ('c', 'b') });
+            set = new HashSet<DirectedGraph<char, DirectedEdge<char>>>(comparer)
+            {
+                mkGraph("a", new (char, char)[] { }),
+                mkGraph("bc", new (char, char)[] { ('b','c'), ('c', 'b') }),
+                mkGraph("d", new (char, char)[] { }),
+            };
+
+            yield return new object[] { g, set };
+
+            g = mkGraph("abcdefgh", new (char, char)[] {
+                ('b', 'c'),
+                ('c', 'd'),
+                ('d', 'b'),
+
+                ('e', 'f'),
+                ('f', 'g'),
+                ('g', 'e'),
+
+                ('g', 'a'),
+                ('g', 'h'),
+            });
+            set = new HashSet<DirectedGraph<char, DirectedEdge<char>>>(comparer)
+            {
+                mkGraph("bcd", new (char, char)[] { ('b', 'c'), ('c','d'), ('d','b') }),
+                mkGraph("efg", new (char, char)[] { ('e','f'), ('f', 'g'), ('g','e') }),
+                mkGraph("h", new (char, char)[] { }),
+                mkGraph("a", new (char, char)[] { }),
+            };
+
+            yield return new object[] { g, set };
+        }
+
         [Theory]
         [MemberData(nameof(ShortestPathData))]
         public static void ShortestPathTest(CharGraph g, IDictionary<(char, char), Maybe<double>> expected)
@@ -774,6 +863,30 @@ namespace Nordril.Graphs.Tests
             Assert.Equal(actual.HasValue, expected.HasValue);
             if (expected.HasValue)
                 Assert.Equal(actual.Value(), expected.Value());
+        }
+
+        //note: this works (hand-verified via the debug-variable), but SetEquals fails for some reason. fix this later.
+        [Theory]
+        [MemberData(nameof(StronglyConnectedComponentsData))]
+        public static void StronglyConnectedComponentsTest(CharGraph g, ISet<CharGraph> expected)
+        {
+            var comparer = new GraphEqualityComparer<CharGraph, char, DirectedEdge<char>>(
+                GraphEqualityComparer.VertexCompare<char>(),
+                GraphEqualityComparer.EdgeCompare<char>());
+
+            var actual = new FuncSet<DirectedGraph<char, DirectedEdge<char>>>(comparer);
+            g.StronglyConnectedComponents().ForEach(c => { actual.Add(c); });
+
+            Assert.Equal(actual.Count, expected.Count);
+
+            var inExpectedNotInActual = expected.Except(actual).ToList();
+            var inActualNotInExpected = actual.DifferencePure(expected);
+
+            (string, string) debugGraph(CharGraph gg) => (gg.Vertices.Select(v => v + "").ConcatStrings(""), gg.Edges.Select(e => $"({e.StartVertex} -> {e.EndVertex})").ConcatStrings(", "));
+
+            //var debug = actual.Zip(expected).Select(gg => (debugGraph(gg.Item1), debugGraph(gg.Item2))).ToList();
+
+            Assert.True(actual.SetEquals(expected));
         }
     }
 }

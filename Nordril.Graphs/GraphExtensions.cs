@@ -1,7 +1,9 @@
-﻿using Nordril.Functional;
+﻿using Nordril.Collections;
+using Nordril.Functional;
 using Nordril.Functional.Algebra;
 using Nordril.Functional.Data;
 using SD.Tools.Algorithmia.Graphs;
+using SD.Tools.Algorithmia.Graphs.Algorithms;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -76,7 +78,7 @@ namespace Nordril.Graphs
             var sorter = new CycleDetectingSorter<TVertex, DirectedEdge<TVertex>>(g, true);
 
             //Definition of a tree: |E| = |V|-1 && the graph is connected.
-            if (roots.Count != 1 || g.EdgeCount != (g.VertexCount -1) || !g.IsConnected())
+            if (roots.Count != 1 || g.EdgeCount != (g.VertexCount - 1) || !g.IsConnected())
                 return Maybe.Nothing<Tree<TVertex>>();
 
             Tree<TVertex> go(TVertex cur)
@@ -118,6 +120,117 @@ namespace Nordril.Graphs
             }
             else
                 return false;
+        }
+
+        /// <summary>
+        /// Returns the list of strongly connected components in a graph. A strongly connected component is one in which
+        /// <list type="number">
+        ///     <item>for every pair of vertices V,W, W is reachable from V, and </item>
+        ///     <item>one cannot add another node U such that the first property still holds.</item>
+        /// </list>
+        /// </summary>
+        /// <remarks>Uses Tarjan's algorithm.</remarks>
+        /// <typeparam name="TVertex">The type of the vertices.</typeparam>
+        /// <typeparam name="TEdge">The type of the edges.</typeparam>
+        /// <param name="g">The graph.</param>
+        public static IEnumerable<DirectedGraph<TVertex, TEdge>> StronglyConnectedComponents<TVertex, TEdge>(this DirectedGraph<TVertex, TEdge> g)
+            where TVertex : IEquatable<TVertex>
+            where TEdge : DirectedEdge<TVertex>
+        {
+            //https://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
+
+            var index = 0;
+            var stack = new Stack<TVertex>();
+            var vertexData = new Dictionary<TVertex, (int index, int lowLink, bool onStack)>();
+
+            g.Vertices.ForEach(v => vertexData[v] = (-1, -1, false));
+
+            Func<int, int> min(int x) => y => Math.Min(x, y);
+
+            IEnumerable<DirectedGraph<TVertex, TEdge>> strongConnect(TVertex v)
+            {
+                vertexData.Update(v, i => (index, index, true));
+                index++;
+                stack.Push(v);
+
+                foreach (var e in g.GetEdgesFromStartVertex(v))
+                {
+                    if (vertexData[e.EndVertex].index < 0)
+                    {
+                        foreach (var scc in strongConnect(e.EndVertex))
+                            yield return scc;
+                        vertexData.Update(v, i => i.Second(min(vertexData[e.EndVertex].lowLink)));
+                    }
+                    else if (vertexData[e.EndVertex].onStack)
+                        vertexData.Update(v, i => i.Second(min(vertexData[e.EndVertex].index)));
+                }
+
+                var vData = vertexData[v];
+
+                if (vData.lowLink == vData.index)
+                {
+                    var result = new DirectedGraph<TVertex, TEdge>();
+                    TVertex w;
+
+                    do
+                    {
+                        w = stack.Pop();
+                        vertexData.Update(w, i => i.Third(_ => false));
+                        result.Add(w);
+                    } while (!w.Equals(v));
+
+                    foreach (var v1 in result.Vertices)
+                        foreach (var v2 in result.Vertices)
+                            g.GetEdges(v1, v2).ForEach(result.Add);
+
+                    yield return result;
+                }
+            }
+
+            foreach (var v in g.Vertices)
+            {
+                if (vertexData[v].index < 0)
+                {
+                    foreach (var scc in strongConnect(v))
+                        yield return scc;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the list of weakly connected components in a graph. A weakly connected component is one in which
+        /// <list type="number">
+        ///     <item>for every pair of vertices V,W, W is reachable from V, ignoring edge-direction, and </item>
+        ///     <item>one cannot add another node U such that the first property still holds.</item>
+        /// </list>
+        /// </summary>
+        /// <typeparam name="TGraph">The type of the produced components.</typeparam>
+        /// <typeparam name="TVertex">The type of the vertices.</typeparam>
+        /// <typeparam name="TEdge">The type of the edges.</typeparam>
+        /// <param name="g">The graph.</param>
+        /// <param name="componentMaker">A producer-function for empty empty components.</param>
+        public static IList<TGraph> WeaklyConnectedComponents<TGraph, TVertex, TEdge>(this GraphBase<TVertex, TEdge> g, Func<TGraph> componentMaker)
+            where TEdge : class, IEdge<TVertex>
+            where TGraph : GraphBase<TVertex, TEdge>
+        {
+            var subgraphs = new List<TGraph>();
+
+            //Find the subgraphs (connected components that are candidates for being turned into trees).
+            var dcGraphFinder = new DisconnectedGraphsFinder<TVertex, TEdge>(
+                () => new SubGraphView<TVertex, TEdge>(g), g);
+
+            dcGraphFinder.FindDisconnectedGraphs();
+
+            foreach (var component in dcGraphFinder.FoundDisconnectedGraphs)
+            {
+                var subG = componentMaker();
+                component.Vertices.ForEach(subG.Add);
+                component.Edges.ForEach(subG.Add);
+
+                subgraphs.Add(subG);
+            }
+
+            return subgraphs;
         }
 
         /// <summary>

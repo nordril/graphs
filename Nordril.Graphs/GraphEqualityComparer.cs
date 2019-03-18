@@ -66,7 +66,7 @@ namespace Nordril.Graphs
             var vertexList = obj.Vertices.OrderBy(v => v, vertexComparer).HashElements();
             var edgeList = obj.Edges.OrderBy(e => e, edgeComparer).HashElements();
 
-            return this.DefaultHash(vertexList, edgeList);
+            return obj.DefaultHash(vertexList, edgeList);
         }
     }
 

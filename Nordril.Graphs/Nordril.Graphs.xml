@@ -159,6 +159,31 @@
             <param name="g">The graph.</param>
             <param name="cycles">The vertices which form part of cycles, with their outgoing edges. If there are no cycles, <c>default</c> will be returned.</param>
         </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.StronglyConnectedComponents``2(SD.Tools.Algorithmia.Graphs.DirectedGraph{``0,``1})">
+            <summary>
+            Returns the list of strongly connected components in a graph. A strongly connected component is one in which
+            <list type="number">
+                <item>for every pair of vertices V,W, W is reachable from V, and </item>
+                <item>one cannot add another node U such that the first property still holds.</item>
+            </list>
+            </summary>
+            <remarks>Uses Tarjan's algorithm.</remarks>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <typeparam name="TEdge">The type of the edges.</typeparam>
+            <param name="g">The graph.</param>
+        </member>
+        <member name="M:Nordril.Graphs.GraphExtensions.WeaklyConnectedComponents``3(SD.Tools.Algorithmia.Graphs.GraphBase{``1,``2},System.Func{``0})">
+            <summary>
+            Returns the list of weakly connected components in a graph. A weakly connected component is one in which
+            <list type="number">
+                <item>for every pair of vertices V,W, W is reachable from V, ignoring edge-direction, and </item>
+                <item>one cannot add another node U such that the first property still holds.</item>
+            </list>
+            </summary>
+            <typeparam name="TVertex">The type of the vertices.</typeparam>
+            <typeparam name="TEdge">The type of the edges.</typeparam>
+            <param name="g">The graph.</param>
+        </member>
         <member name="M:Nordril.Graphs.GraphExtensions.RemoveLoops``3(``0)">
             <summary>
             Removes all loops from a graph. The input graph will be mutated.
