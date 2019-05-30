@@ -180,9 +180,11 @@
                 <item>one cannot add another node U such that the first property still holds.</item>
             </list>
             </summary>
+            <typeparam name="TGraph">The type of the produced components.</typeparam>
             <typeparam name="TVertex">The type of the vertices.</typeparam>
             <typeparam name="TEdge">The type of the edges.</typeparam>
             <param name="g">The graph.</param>
+            <param name="componentMaker">A producer-function for empty empty components.</param>
         </member>
         <member name="M:Nordril.Graphs.GraphExtensions.RemoveLoops``3(``0)">
             <summary>

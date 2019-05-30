@@ -197,6 +197,28 @@ namespace Nordril.Graphs
             }
         }
 
+        /*public static IEnumerable<IMutableVertexAndEdgeListGraph<TVertex, TEdge>> StronglyConnectedComponents<TVertex, TEdge>(this IVertexListGraph<TVertex, TEdge> g, Func<IMutableVertexAndEdgeListGraph<TVertex, TEdge>> componentMaker)
+            where TEdge : QuickGraph.IEdge<TVertex>
+        {
+            g.StronglyConnectedComponents(out var scc);
+
+            return scc.GroupBy(kv => kv.Value).Select(group =>
+            {
+                var c = componentMaker();
+
+                group.ForEach(kv => c.AddVertex(kv.Key));
+                
+                foreach (var v1 in c.Vertices)
+                    foreach (var v2 in c.Vertices)
+                    {
+                        if (g.TryGetEdges(v1, v2, out var edges))
+                            edges.ForEach(e => c.AddEdge(e));
+                    }
+            });
+        }*/
+
+
+
         /// <summary>
         /// Returns the list of weakly connected components in a graph. A weakly connected component is one in which
         /// <list type="number">
@@ -213,11 +235,16 @@ namespace Nordril.Graphs
             where TEdge : class, IEdge<TVertex>
             where TGraph : GraphBase<TVertex, TEdge>
         {
+            var undirected = new NonDirectedGraph<TVertex, NonDirectedEdge<TVertex>>();
+
+            g.Vertices.ForEach(undirected.Add);
+            g.Edges.ForEach(e => undirected.Add(new NonDirectedEdge<TVertex>(e.StartVertex, e.EndVertex)));
+
             var subgraphs = new List<TGraph>();
 
             //Find the subgraphs (connected components that are candidates for being turned into trees).
-            var dcGraphFinder = new DisconnectedGraphsFinder<TVertex, TEdge>(
-                () => new SubGraphView<TVertex, TEdge>(g), g);
+            var dcGraphFinder = new DisconnectedGraphsFinder<TVertex, NonDirectedEdge<TVertex>>(
+                () => new SubGraphView<TVertex, NonDirectedEdge<TVertex>>(undirected), undirected);
 
             dcGraphFinder.FindDisconnectedGraphs();
 
@@ -225,7 +252,10 @@ namespace Nordril.Graphs
             {
                 var subG = componentMaker();
                 component.Vertices.ForEach(subG.Add);
-                component.Edges.ForEach(subG.Add);
+
+                foreach (var v1 in component.Vertices)
+                    foreach (var v2 in component.Vertices)
+                        g.GetEdges(v1, v2).ForEach(subG.Add);
 
                 subgraphs.Add(subG);
             }
@@ -433,11 +463,19 @@ namespace Nordril.Graphs
                     newEdges[(v, edgeGroup.Key)] = (edgeSet, merger(edgeSet));
                 }
 
+#if NETCORE
             foreach (var ((vin, vout), (edges, edge)) in newEdges)
             {
                 edges.ForEach(g.Remove);
                 g.Add(edge);
             }
+#elif NETFULL
+            foreach (var kv in newEdges)
+            {
+                kv.Value.Item1.ForEach(g.Remove);
+                g.Add(kv.Value.Item2);
+            }
+#endif
 
             return g;
         }
