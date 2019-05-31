@@ -1,3 +1,2 @@
 # graphs
-
-Graph-algorithms.
+Graph algorithms, mostly extensions for SD.Tools.Algorithmia.
