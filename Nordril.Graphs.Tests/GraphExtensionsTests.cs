@@ -884,7 +884,7 @@ namespace Nordril.Graphs.Tests
 
             (string, string) debugGraph(CharGraph gg) => (gg.Vertices.Select(v => v + "").ConcatStrings(""), gg.Edges.Select(e => $"({e.StartVertex} -> {e.EndVertex})").ConcatStrings(", "));
 
-            var debug = actual.Zip(expected).Select(gg => (debugGraph(gg.Item1), debugGraph(gg.Item2))).ToList();
+            //var debug = actual.Zip(expected).Select(gg => (debugGraph(gg.Item1), debugGraph(gg.Item2))).ToList();
 
             Assert.True(actual.SetEquals(expected));
         }
