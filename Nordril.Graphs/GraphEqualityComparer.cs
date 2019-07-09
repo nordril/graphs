@@ -79,7 +79,7 @@ namespace Nordril.Graphs
         /// Returns an <see cref="IComparer{T}"/> which uses the <see cref="IComparable{T}"/>-insance of the vertex <typeparamref name="T"/>.
         /// </summary>
         /// <typeparam name="T">The type of the vertices.</typeparam>
-        public static FuncComparer<T> VertexCompare<T>() where T : IComparable<T> => new FuncComparer<T>((c, d) => c.CompareTo(d));
+        public static FuncComparer<T> VertexCompare<T>() where T : IComparable<T> => new FuncComparer<T>((c, d) => c.CompareTo(d), x => x.GetHashCode());
 
         /// <summary>
         /// Returns an <see cref="IComparer{T}"/> which uses the <see cref="IComparable{T}"/>-instance of the vertex <typeparamref name="T"/> and which compares the start- and edn-vertex of the edges.
@@ -91,7 +91,7 @@ namespace Nordril.Graphs
                 return startComp;
             else
                 return e.EndVertex.CompareTo(f.EndVertex);
-        });
+        }, x => x.GetHashCode());
 
         /// <summary>
         /// Returns an <see cref="IComparer{T}"/> which uses an <see cref="IComparer{T}"/> <paramref name="comparer"/> on the vertex <typeparamref name="T"/> and which compares the start- and edn-vertex of the edges.
@@ -103,6 +103,6 @@ namespace Nordril.Graphs
                 return startComp;
             else
                 return comparer.Compare(e.EndVertex, f.EndVertex);
-        });
+        }, x => x.GetHashCode());
     }
 }
