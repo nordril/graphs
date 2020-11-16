@@ -21,6 +21,9 @@ namespace Nordril.Graphs
         private readonly IComparer<TVertex> vertexComparer;
         private readonly IComparer<TEdge> edgeComparer;
 
+        private readonly Func<TVertex, int> vertexHash = x => x.GetHashCode();
+        private readonly Func<TEdge, int> edgeHash = x => x.GetHashCode();
+
         /// <summary>
         /// Creates a new instance.
         /// </summary>
@@ -30,6 +33,12 @@ namespace Nordril.Graphs
         {
             this.vertexComparer = vertexComparer;
             this.edgeComparer = edgeComparer;
+
+            if (vertexComparer is IEqualityComparer<TVertex> veq)
+                vertexHash = x => veq.GetHashCode(x);
+
+            if (edgeComparer is IEqualityComparer<TEdge> eeq)
+                edgeHash = x => eeq.GetHashCode(x);
         }
 
         /// <inheritdoc />
@@ -63,8 +72,8 @@ namespace Nordril.Graphs
         /// <param name="obj">The graph to hash.</param>
         public int GetHashCode(TGraph obj)
         {
-            var vertexList = obj.Vertices.OrderBy(v => v, vertexComparer).HashElements();
-            var edgeList = obj.Edges.OrderBy(e => e, edgeComparer).HashElements();
+            var vertexList = obj.Vertices.OrderBy(v => v, vertexComparer).Select(vertexHash).HashElements();
+            var edgeList = obj.Edges.OrderBy(e => e, edgeComparer).Select(edgeHash).HashElements();
 
             return obj.DefaultHash(vertexList, edgeList);
         }
@@ -79,7 +88,8 @@ namespace Nordril.Graphs
         /// Returns an <see cref="IComparer{T}"/> which uses the <see cref="IComparable{T}"/>-insance of the vertex <typeparamref name="T"/>.
         /// </summary>
         /// <typeparam name="T">The type of the vertices.</typeparam>
-        public static FuncComparer<T> VertexCompare<T>() where T : IComparable<T> => new FuncComparer<T>((c, d) => c.CompareTo(d), x => x.GetHashCode());
+        public static FuncComparer<T> VertexCompare<T>() where T : IComparable<T> => new FuncComparer<T>((c, d) => 
+        c.CompareTo(d), x => x.GetHashCode());
 
         /// <summary>
         /// Returns an <see cref="IComparer{T}"/> which uses the <see cref="IComparable{T}"/>-instance of the vertex <typeparamref name="T"/> and which compares the start- and edn-vertex of the edges.
@@ -91,7 +101,10 @@ namespace Nordril.Graphs
                 return startComp;
             else
                 return e.EndVertex.CompareTo(f.EndVertex);
-        }, x => x.GetHashCode());
+        }, x =>
+        {
+            return x.DefaultHash(x.StartVertex, x.EndVertex);
+        });
 
         /// <summary>
         /// Returns an <see cref="IComparer{T}"/> which uses an <see cref="IComparer{T}"/> <paramref name="comparer"/> on the vertex <typeparamref name="T"/> and which compares the start- and edn-vertex of the edges.
