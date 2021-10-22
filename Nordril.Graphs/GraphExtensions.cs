@@ -463,19 +463,11 @@ namespace Nordril.Graphs
                     newEdges[(v, edgeGroup.Key)] = (edgeSet, merger(edgeSet));
                 }
 
-#if NETCORE
             foreach (var ((vin, vout), (edges, edge)) in newEdges)
             {
                 edges.ForEach(g.Remove);
                 g.Add(edge);
             }
-#elif NETFULL
-            foreach (var kv in newEdges)
-            {
-                kv.Value.Item1.ForEach(g.Remove);
-                g.Add(kv.Value.Item2);
-            }
-#endif
 
             return g;
         }
